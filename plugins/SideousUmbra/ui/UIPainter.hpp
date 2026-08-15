@@ -145,27 +145,28 @@ inline void addKnobRow(std::vector<Knob>& knobs, float panelX, float panelW, flo
 }
 
 // vertical space a single-row knob panel needs, given the knob radius:
-// 34px title zone + 14px gap + knob diameter + 20px label space + 14px pad
-inline float knobPanelHeight(float radius) noexcept { return 82.0f + radius * 2.0f; }
-inline float knobRowCenterY(float panelY, float radius) noexcept { return panelY + 48.0f + radius; }
+// 26px title zone + 8px gap + knob diameter + 14px label space + 10px pad
+inline float knobPanelHeight(float radius) noexcept { return 58.0f + radius * 2.0f; }
+inline float knobRowCenterY(float panelY, float radius) noexcept { return panelY + 34.0f + radius; }
 
 inline Layout buildLayout(float width)
 {
     Layout L;
     L.width = width;
 
-    const float margin = 16.0f;
-    const float gap = 14.0f;
+    const float margin = 12.0f;
+    const float gap = 8.0f;
 
-    // --- header: title/subtitle + separator ---
-    const float headerH = 44.0f;
+    // --- header: title/subtitle (no separator line - redundant this close
+    // to the preset bar once everything below it got tightened up) ---
+    const float headerH = 36.0f;
 
-    // --- preset bar: full width, right below the header separator and
-    // above the cat mascot (rather than below the cat, per sideous-noise) -
-    // keeps it as the very first thing under the title, uncluttered by the
-    // mascot/panels below it ---
+    // --- preset bar: full width, right below the header and above the cat
+    // mascot (rather than below the cat, per sideous-noise) - keeps it as
+    // the very first thing under the title, uncluttered by the mascot/
+    // panels below it ---
     const float presetBarY = margin + headerH + gap;
-    const float presetBarH = 40.0f;
+    const float presetBarH = 34.0f;
     {
         L.presetBar.accent = kPrideRed;
         const float y = presetBarY, h = presetBarH;
@@ -187,7 +188,7 @@ inline Layout buildLayout(float width)
     }
 
     // --- cat mascot, centered, top of panel (the visual centerpiece) ---
-    const float catW = 148.0f;
+    const float catW = 130.0f;
     const float catH = catW * (float)kUmbraCatHeight / (float)kUmbraCatWidth;
     L.cat = { (width - catW) * 0.5f, presetBarY + presetBarH + gap, catW, catH };
 
@@ -196,7 +197,7 @@ inline Layout buildLayout(float width)
 
     // --- row 1: Voice | Formants ---
     const float row1Y = L.cat.y + L.cat.h + gap;
-    const float row1RadiusVoice = 28.0f, row1RadiusFormants = 30.0f;
+    const float row1RadiusVoice = 22.0f, row1RadiusFormants = 24.0f;
     const float row1H = std::max(knobPanelHeight(row1RadiusVoice), knobPanelHeight(row1RadiusFormants));
     L.panels.push_back({ margin, row1Y, colW, row1H, "VOICE",    kPrideRed });
     L.panels.push_back({ colBx,  row1Y, colW, row1H, "FORMANTS", kPrideOrange });
@@ -206,24 +207,28 @@ inline Layout buildLayout(float width)
     addKnobRow(L.knobs, colBx, colW, knobRowCenterY(row1Y, row1RadiusFormants), row1RadiusFormants, kPrideOrange,
                { { kParamFormantResonance, "RESO" }, { kParamFormantDrive, "DRIVE" } });
 
-    // --- row 2: Swoop & Vibrato (full width, 4 knobs) ---
+    // --- row 2: Swoop & Vibrato | Master (paired side by side - each only
+    // has a couple of knobs, no reason for either to claim a full row) ---
     const float row2Y = row1Y + row1H + gap;
-    const float row2Radius = 26.0f;
+    const float row2Radius = 20.0f;
     const float row2H = knobPanelHeight(row2Radius);
-    L.panels.push_back({ margin, row2Y, width - margin * 2.0f, row2H, "SWOOP & VIBRATO", kPrideYellow });
-    addKnobRow(L.knobs, margin, width - margin * 2.0f, knobRowCenterY(row2Y, row2Radius), row2Radius, kPrideYellow,
+    L.panels.push_back({ margin, row2Y, colW, row2H, "SWOOP & VIBRATO", kPrideYellow });
+    L.panels.push_back({ colBx,  row2Y, colW, row2H, "MASTER",          kPrideBlue });
+    addKnobRow(L.knobs, margin, colW, knobRowCenterY(row2Y, row2Radius), row2Radius, kPrideYellow,
                {
                    { kParamSwoopAmount,  "SWOOP AMT" },
                    { kParamSwoopTime,    "SWOOP TIME" },
                    { kParamVibratoRate,  "VIB RATE" },
                    { kParamVibratoDepth, "VIB DEPTH" },
                });
+    addKnobRow(L.knobs, colBx, colW, knobRowCenterY(row2Y, row2Radius), row2Radius, kPrideBlue,
+               { { kParamMasterVolume, "VOLUME" }, { kParamMasterDrive, "DRIVE" } });
 
     // --- row 3: Envelope (full width, 6 knobs + graph) ---
     const float row3Y = row2Y + row2H + gap;
-    const float row3Radius = 22.0f;
-    const float graphGap = 24.0f, graphH = 56.0f;
-    const float row3H = 48.0f + row3Radius * 2.0f + graphGap + graphH + 14.0f;
+    const float row3Radius = 20.0f;
+    const float graphGap = 22.0f, graphH = 38.0f;
+    const float row3H = 34.0f + row3Radius * 2.0f + graphGap + graphH + 10.0f;
     L.panels.push_back({ margin, row3Y, width - margin * 2.0f, row3H, "ENVELOPE", kPrideGreen });
     const float row3KnobY = knobRowCenterY(row3Y, row3Radius);
     addKnobRow(L.knobs, margin, width - margin * 2.0f, row3KnobY, row3Radius, kPrideGreen,
@@ -237,17 +242,9 @@ inline Layout buildLayout(float width)
                });
     L.envelopeGraphs.push_back({
         kParamAmpAttack, kParamAmpDecay, kParamAmpSustain, kParamAmpRelease, kParamAmpCurve,
-        margin + 14.0f, row3KnobY + row3Radius + graphGap, width - margin * 2.0f - 28.0f, graphH, kPrideGreen });
+        margin + 12.0f, row3KnobY + row3Radius + graphGap, width - margin * 2.0f - 24.0f, graphH, kPrideGreen });
 
-    // --- row 4: Master (full width bar, 2 knobs) ---
-    const float row4Y = row3Y + row3H + gap;
-    const float row4Radius = 30.0f;
-    const float row4H = knobPanelHeight(row4Radius);
-    L.panels.push_back({ margin, row4Y, width - margin * 2.0f, row4H, "MASTER", kPrideBlue });
-    addKnobRow(L.knobs, margin, width - margin * 2.0f, knobRowCenterY(row4Y, row4Radius), row4Radius, kPrideBlue,
-               { { kParamMasterVolume, "VOLUME" }, { kParamMasterDrive, "DRIVE" } });
-
-    L.height = row4Y + row4H + margin;
+    L.height = row3Y + row3H + margin;
     return L;
 }
 
@@ -694,12 +691,6 @@ inline void paint(cairo_t* cr, const Layout& L, const PaintState& state)
         cairo_text_extents(cr, subtitle, &ext);
         drawText(cr, subtitle, L.width - 20.0 - ext.width, 20.0);
     }
-
-    setColor(cr, kPanelEdge, 0.6);
-    cairo_set_line_width(cr, 1.0);
-    cairo_move_to(cr, 16.0, 40.0);
-    cairo_line_to(cr, L.width - 16.0, 40.0);
-    cairo_stroke(cr);
 
     paintPresetBar(cr, L.presetBar, state);
 
